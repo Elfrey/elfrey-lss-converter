@@ -4,15 +4,24 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      # Debugging: Check Environment Variables
-      - name: Print GitHub Context
-        run: echo ${{ toJSON(github) }}
+      # Install zip if not available
+      - name: Install zip
+        run: sudo apt-get install -y zip
+
+      # Debugging: Check if the 'zip' command is available
+      - name: Check for zip command
+        run: which zip
 
       # Substitute the Manifest and Download URLs in the module.json
       - name: Substitute Manifest and Download Links For Versioned Ones
@@ -26,17 +35,24 @@ jobs:
           manifest: https://github.com/${{ github.repository }}/releases/latest/download/dist/module.json
           download: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/module.zip
 
-      # Create a zip file with all files required by the module to add to the release
-      - run: cd dist && zip -r ../module.zip .
+      # Debugging: Check directory contents
+      - name: List dist directory
+        run: ls -la ./dist
 
-      # Debugging: List Files in Directory
-      - run: ls -la ./dist
-      - run: ls -la .
+      # Create a zip file with all files required by the module to add to the release
+      - name: Create zip file
+        run: cd dist && zip -r ../module.zip .
+
+      # Debugging: Check if the zip file was created
+      - name: List root directory
+        run: ls -la .
 
       # Create a release for this specific version
       - name: Update Release with Files
         id: create_version_release
         uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           allowUpdates: true # Set this to false if you want to prevent updating existing releases
           name: ${{ github.event.release.name }}
