@@ -1,0 +1,40 @@
+{
+  "name": "elfrey-lss-converter",
+  "title": "Конрвертер персонажей в формат LSS",
+  "description": "",
+  "version": "1.0.0",
+  "library": "false",
+  "manifestPlusVersion": "1.0.0",
+  "minimumCoreVersion": "11",
+  "compatibleCoreVersion": "11",
+  "authors": [
+    {
+      "name": "Elfrey",
+      "url": "https://github.com/Elfrey",
+      "discord": "Elfrey"
+    }
+  ],
+  "dependencies": [
+  ],
+  "conflicts": [
+  ],
+  "esmodules": [
+    "module.js"
+  ],
+  "scripts": [
+  ],
+  "styles": [
+    "/styles/module.css"
+  ],
+  "languages": [
+    {
+      "lang": "ru",
+      "name": "Russian",
+      "path": "languages/ru.json"
+    }
+  ],
+  "url": "This is auto replaced",
+  "manifest": "This is auto replaced",
+  "download": "This is auto replaced",
+  "media": []
+}
