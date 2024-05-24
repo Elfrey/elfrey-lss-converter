@@ -7,6 +7,7 @@
 1. На главном экране Foundry VTT откройте вкладку "Модули"(Add-on Modules).
 2. Нажмите на кнопку "Установка модуля"(Install Module).
 3. Найти модуль в списке доступных ![image](https://github.com/Elfrey/elfrey-lss-converter/assets/519766/6033f161-6dff-4c6b-9988-d433a9823213)
+   
    Либо в строке "URL манифеста"(Manifest URL) вставьте ссылку: `https://github.com/Elfrey/elfrey-lss-converter/releases/latest/download/module.json`
 5. Нажмите "Установить"(Install) и дождитесь завершения установки.
  
