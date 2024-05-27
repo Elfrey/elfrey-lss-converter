@@ -26,7 +26,7 @@ export default ({traits, languages, weapons, armors, tools, actorTools}) => {
 
       switch (traitKey) {
         case 'size': {
-          traitString += CONFIG.DND5E[traitsConfig[traitKey].configKey][traitValue];
+          traitString += CONFIG.DND5E[traitsConfig[traitKey].configKey][traitValue].label;
           break;
         }
         case 'di':

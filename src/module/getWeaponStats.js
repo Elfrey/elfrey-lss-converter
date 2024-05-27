@@ -1,4 +1,26 @@
-function calculateBonus(data) {
+/* global CONFIG */
+const transformDamageArray = (damageArray) => {
+  let result = damageArray.map(item => {
+    let formula = item.formula;
+    let damageType = item.damageType;
+
+    // Check if the formula already contains brackets
+    let match = formula.match(/\[(.*?)\]/);
+
+    if (match) {
+      let damageType = match[1];
+      formula = formula.replace(`[${damageType}]`, '') + `[${CONFIG.DND5E.damageTypes[damageType].label}]`
+    } else {
+      formula = formula + `[${CONFIG.DND5E.damageTypes[damageType].label}]`;
+    }
+
+    return formula;
+  });
+
+  return result.join(' + ');
+}
+
+const calculateBonus = (data) => {
   const rollData = data.rollData;
   const parts = data.parts;
 
@@ -23,6 +45,11 @@ function calculateBonus(data) {
 
 export default (weapon) => {
   const bonus = calculateBonus(weapon.getAttackToHit());
-  const damage = weapon.getDerivedDamageLabel().map(({label}) => label).join(', ');
-  return `(атака +${bonus}, урон ${damage})`
+  // const damage = weapon.getDerivedDamageLabel().map(({label}) => label).join(', ');
+  const damage = transformDamageArray(weapon.getDerivedDamageLabel());
+  return {
+    bonus,
+    damage,
+    label: `(атака +${bonus}, урон ${damage})`,
+  }
 }

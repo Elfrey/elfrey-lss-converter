@@ -1,6 +1,7 @@
 /* global CONFIG, game */
 
 
+import generateUniqueIds from './generateUniqueIds';
 import collectLanguages from './collectLanguages.js';
 import getTraits from './getTraits.js';
 import getWeapons from './getWeapons.js';
@@ -8,14 +9,10 @@ import getArmor from './getArmor.js';
 import getTools from './getTools.js';
 import htmlToLssJson from './htmlToLssJson.js';
 import getWeaponStats from './getWeaponStats';
+import getWeaponObject from './getWeaponObject';
+import getResource from './getResource';
+import { moduleName } from '../_module';
 
-const generateUniqueIds = (count = 1) => {
-  const ids = [];
-  for (let i = 0; i < count; i++) {
-    ids.push(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0'));
-  }
-  return ids;
-};
 
 const textTemplate = (text) => {
   return {
@@ -142,8 +139,9 @@ const fttSkillsKeys = {
 };
 
 const convertFoundryToLss = async (actorData) => {
+  const useInteractiveBlocks = game.settings.get(moduleName, 'interactive-blocks');
   const randomId = generateUniqueIds(20);
-  const pack = game.packs.get('dnd5e.items');
+  const itemsPack = game.packs.get('dnd5e.items');
   const {
     abilities,
     attributes,
@@ -154,19 +152,7 @@ const convertFoundryToLss = async (actorData) => {
     traits,
     tools: actorTools,
   } = actorData.system;
-
-  const lssTemplate = {
-    tags: [],
-    disabledBlocks: [],
-    spells: {
-      mode: 'text',
-      prepared: [],
-      book: [],
-    },
-    data: '',
-    jsonType: 'character',
-    version: '2',
-  };
+  const { items } = actorData;
 
   let lssSpells = {
     'spells-level-0': {
@@ -212,6 +198,23 @@ const convertFoundryToLss = async (actorData) => {
       },
     },
   };
+  const insertTrait = ({
+                         type = 'text',
+                         text,
+                         id,
+                         textName,
+                       }) => {
+    const tmpTrait = type === 'resource' ? {
+      type: 'resource',
+      attrs: {
+        id,
+        textName,
+      },
+    } : {
+      ...text,
+    };
+    lssTraits.traits.value.data.content.push(tmpTrait);
+  };
   const lssFeatures = {
     features: {
       value: {
@@ -243,7 +246,8 @@ const convertFoundryToLss = async (actorData) => {
       },
     },
   };
-
+  const lssWeapons = [];
+  const lssResource = {};
 
   const charClass = [];
   const spellCasting = [];
@@ -335,6 +339,7 @@ const convertFoundryToLss = async (actorData) => {
     } else {
       hitDie.value = 'multiclass';
     }
+    // charClass.push(`${curClass.name} (${curClass.system.levels}) ${curClass._classLink.name}`);
     charClass.push(`${curClass.name} (${curClass.system.levels})`);
   });
 
@@ -391,23 +396,17 @@ const convertFoundryToLss = async (actorData) => {
   }
 
   // Get items, spells, and features
-  actorData.items.forEach((item) => {
-    /*
-  "race"
-  "class"
-  "spell"
-  "feat"
-  "tool"
-  "subclass"
-  "weapon"
-  "equipment"
-  "consumable"
-  "container"
-  "loot"
-  "background"
-     */
+  items.forEach((item) => {
     switch (item.type) {
       case 'spell': {
+        if (['rsak', 'msak'].includes(item.system.actionType) && item.system.level === 0) {
+          const weaponStats = getWeaponStats(item, actorData);
+          lssWeapons.push(getWeaponObject({
+            ...item,
+            ...weaponStats,
+            parent: actorData,
+          }));
+        }
         lssSpells[`spells-level-${item.system.level}`].value.data.content.push(textTemplate(item.name));
         break;
       }
@@ -416,15 +415,30 @@ const convertFoundryToLss = async (actorData) => {
         break;
       }
       case 'weapon': {
-        const weaponState = getWeaponStats(item);
-        lssAttacks.attacks.value.data.content.push(textTemplate(`${item.name} ${weaponState}`));
+        const weaponStats = getWeaponStats(item);
+        if (useInteractiveBlocks) {
+          lssWeapons.push(getWeaponObject({
+            ...item,
+            ...weaponStats,
+          }));
+        } else {
+          lssAttacks.attacks.value.data.content.push(textTemplate(`${item.name} ${weaponStats.label}`));
+        }
         break;
       }
       case 'feat': {
-        if (item.system.activation?.type !== null) {
-          lssTraits.traits.value.data.content.push(textTemplate(item.name));
+        if (item.system.activation?.type !== null && item.system.uses.max > 0 && useInteractiveBlocks) {
+          const { id, item: resourceItem } = getResource(item);
+          lssResource[id] = resourceItem;
+          insertTrait({
+            type: 'resource',
+            id,
+            textName: 'traits',
+          });
         } else {
-          lssFeatures.features.value.data.content.push(textTemplate(item.name));
+          insertTrait({
+            text: textTemplate(item.name),
+          });
         }
         break;
       }
@@ -442,17 +456,17 @@ const convertFoundryToLss = async (actorData) => {
 
   // Get traits
   const weapons = await getWeapons({
-    pack,
+    pack: itemsPack,
     itemIds: CONFIG.DND5E.weaponIds,
     weaponProfs: CONFIG.DND5E.weaponProficiencies,
   });
   const armors = await getArmor({
-    pack,
+    pack: itemsPack,
     itemIds: CONFIG.DND5E.armorIds,
     armorProfs: CONFIG.DND5E.armorProficiencies,
   });
   const tools = await getTools({
-    pack,
+    pack: itemsPack,
     itemIds: CONFIG.DND5E.toolIds,
     toolsProfs: CONFIG.DND5E.vehicleTypes,
   });
@@ -576,6 +590,8 @@ const convertFoundryToLss = async (actorData) => {
       sp: { value: currency.sp },
     },
     casterClass: { value: spellCastingString.join(', ') }, // no direct mapping found
+    weaponsList: lssWeapons,
+    resources: lssResource,
   };
 
   return {
