@@ -215,6 +215,11 @@ const convertFoundryToLss = async (actorData) => {
     };
     lssTraits.traits.value.data.content.push(tmpTrait);
   };
+  const insertFeature = ({
+                           text,
+                         }) => {
+    lssFeatures.features.value.data.content.push(text);
+  };
   const lssFeatures = {
     features: {
       value: {
@@ -427,16 +432,22 @@ const convertFoundryToLss = async (actorData) => {
         break;
       }
       case 'feat': {
-        if (item.system.activation?.type !== null && item.system.uses.max > 0 && useInteractiveBlocks) {
-          const { id, item: resourceItem } = getResource(item);
-          lssResource[id] = resourceItem;
-          insertTrait({
-            type: 'resource',
-            id,
-            textName: 'traits',
-          });
+        if (item.system.activation?.type !== null && item.system.uses.max > 0) {
+          if (useInteractiveBlocks) {
+            const { id, item: resourceItem } = getResource(item);
+            lssResource[id] = resourceItem;
+            insertTrait({
+              type: 'resource',
+              id,
+              textName: 'traits',
+            });
+          } else {
+            insertTrait({
+              text: textTemplate(item.name),
+            });
+          }
         } else {
-          insertTrait({
+          insertFeature({
             text: textTemplate(item.name),
           });
         }
@@ -499,14 +510,14 @@ const convertFoundryToLss = async (actorData) => {
       background: {
         name: 'background',
         label: 'предыстория',
-        value: details.background.name,
+        value: details.background?.name || '',
       },
       playerName: { name: 'playerName', label: 'имя игрока', value: '' },
-      race: { name: 'race', label: 'раса', value: details.race.name },
+      race: { name: 'race', label: 'раса', value: details.race?.name || '' },
       alignment: {
         name: 'alignment',
         label: 'мировоззрение',
-        value: details.alignment,
+        value: details.alignment || '',
       },
       experience: {
         name: 'experience',
@@ -515,18 +526,18 @@ const convertFoundryToLss = async (actorData) => {
       },
     },
     subInfo: {
-      age: { name: 'age', label: 'возраст', value: details.age },
-      height: { name: 'height', label: 'рост', value: details.height },
-      weight: { name: 'weight', label: 'вес', value: details.weight },
-      eyes: { name: 'eyes', label: 'глаза', value: details.eyes },
-      skin: { name: 'skin', label: 'кожа', value: details.skin },
-      hair: { name: 'hair', label: 'волосы', value: details.hair },
+      age: { name: 'age', label: 'возраст', value: details.age || '' },
+      height: { name: 'height', label: 'рост', value: details.height || '' },
+      weight: { name: 'weight', label: 'вес', value: details.weight || '' },
+      eyes: { name: 'eyes', label: 'глаза', value: details.eyes || '' },
+      skin: { name: 'skin', label: 'кожа', value: details.skin || '' },
+      hair: { name: 'hair', label: 'волосы', value: details.hair || '' },
     },
     spellsInfo: {
       base: {
         name: 'base',
         label: 'Базовая характеристика заклинаний',
-        value: CONFIG.DND5E.abilities[attributes.spellcasting].label,
+        value: CONFIG.DND5E.abilities[attributes.spellcasting]?.label || 'Интеллект',
         code: attributes.spellcasting,
       },
       save: {

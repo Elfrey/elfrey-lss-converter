@@ -1,3 +1,5 @@
 {
-  "ELSS.CONVERT": "Экспорт персонажа в LSS"
+  "ELSS.CONVERT": "Экспорт персонажа в LSS",
+  "ELSS.CONVERT_START": "Начинаю экспорт.",
+  "ELSS.CONVERT_END": "Экспорт закончен."
 }

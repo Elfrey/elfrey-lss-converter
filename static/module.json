@@ -2,7 +2,7 @@
   "name": "elfrey-lss-converter",
   "title": "Конрвертер персонажей в формат LSS",
   "description": "",
-  "version": "This is auto replaced",
+  "version": "1.4",
   "library": "false",
   "manifestPlusVersion": "1.0.0",
   "minimumCoreVersion": "11",

@@ -1,4 +1,4 @@
-/* global game */
+/* global game, ui  */
 import convertFoundryToLss from './module/convert';
 import saveJsonFile from './module/saveToFile';
 
@@ -6,6 +6,7 @@ import uidFromString from './module/uidFromString';
 import generateUniqueIds from './module/generateUniqueIds';
 import { moduleName } from './_module';
 
+/*
 function createActorHeaderButton(config, buttons) {
   const buttonLabel = game.i18n.localize('ELSS.CONVERT');
   if (config.object instanceof Actor) {
@@ -21,10 +22,11 @@ function createActorHeaderButton(config, buttons) {
     });
   }
 }
+*/
 
 
 Hooks.once('ready', async function() {
-  Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
+  // Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
   game.settings.register(moduleName, 'interactive-blocks', {
     'name': 'Использовать интерактивные блоки',
     'hint': 'При экспорте атаки и способности, которые можно использовать, будут оформлены интерактивными блоками, а не просто текстом',
@@ -36,17 +38,23 @@ Hooks.once('ready', async function() {
 
 });
 
-Hooks.on('getActorDirectoryEntryContext', (data, options) => {
-  console.debug('data', data);
+Hooks.on('getActorDirectoryEntryContext', (_, options) => {
   options.push({
     name: 'ELSS.CONVERT',
     icon: '<i class="fas fa-print"></i>',
     callback: async ([entry]) => {
       const actorId = entry.dataset.documentId;
       const actor = game.actors?.get(actorId);
+
       if (actor) {
+        if (ui.notifications) {
+          ui.notifications.info(game.i18n.localize('ELSS.CONVERT_START'));
+        }
         const jsonString = await convertFoundryToLss(actor);
         saveJsonFile(jsonString, actor?.name);
+        if (ui.notifications) {
+          ui.notifications.info(game.i18n.localize('ELSS.CONVERT_END'));
+        }
       }
     },
     condition: (li) => {
