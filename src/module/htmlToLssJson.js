@@ -2,7 +2,7 @@ export default (htmlString) => {
   // Create a new DOM parser
   const parser = new DOMParser();
   // Parse the HTML string
-  const doc = parser.parseFromString(htmlString, 'text/html');
+  const doc = parser.parseFromString(`<p>${htmlString}</p>`, 'text/html');
 
   // Helper function to process text nodes with inline styles
   function processTextNodes(node) {

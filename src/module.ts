@@ -6,27 +6,8 @@ import uidFromString from './module/uidFromString';
 import generateUniqueIds from './module/generateUniqueIds';
 import { moduleName } from './_module';
 
-/*
-function createActorHeaderButton(config, buttons) {
-  const buttonLabel = game.i18n.localize('ELSS.CONVERT');
-  if (config.object instanceof Actor) {
-    buttons.unshift({
-      label: buttonLabel,
-      class: 'elss-actor',
-      icon: 'fa-solid fa-language',
-      onclick: async () => {
-        console.clear();
-        const jsonString = await convertFoundryToLss(config.object);
-        console.debug('jsonString', jsonString);
-      },
-    });
-  }
-}
-*/
-
 
 Hooks.once('ready', async function() {
-  // Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
   game.settings.register(moduleName, 'interactive-blocks', {
     'name': 'Использовать интерактивные блоки',
     'hint': 'При экспорте атаки и способности, которые можно использовать, будут оформлены интерактивными блоками, а не просто текстом',
@@ -69,7 +50,24 @@ Hooks.on('getActorDirectoryEntryContext', (_, options) => {
 
 // --------------------------------
 if (process.env.NODE_ENV === 'development') {
-
+  const createActorHeaderButton = (config, buttons) => {
+    const buttonLabel = game.i18n.localize('ELSS.CONVERT');
+    if (config.object instanceof Actor) {
+      buttons.unshift({
+        label: buttonLabel,
+        class: 'elss-actor',
+        icon: 'fa-solid fa-language',
+        onclick: async () => {
+          console.clear();
+          const jsonString = await convertFoundryToLss(config.object);
+          console.debug('jsonString', jsonString);
+        },
+      });
+    }
+  }
+  Hooks.on('ready', () => {
+    Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
+  })
   // @ts-ignore
   window.runTmpTest = (runs = 10) => {
     // Example usage and performance measurement using Performance API
