@@ -42,7 +42,8 @@ Hooks.on('getActorDirectoryEntryContext', (_, options) => {
       const actorId = li.data('documentId');
       const actor = game.actors?.get(actorId);
       // Show the option only if the actor is a player character (PC)
-      return actor && actor.data.type === 'character';
+      // @ts-ignore
+      return actor && actor.type === 'character';
     },
   });
 });

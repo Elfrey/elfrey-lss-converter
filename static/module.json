@@ -2,11 +2,11 @@
   "name": "elfrey-lss-converter",
   "title": "Конрвертер персонажей в формат LSS",
   "description": "",
-  "version": "1.5",
+  "version": "1.6",
   "library": "false",
   "manifestPlusVersion": "1.0.0",
   "minimumCoreVersion": "11",
-  "compatibleCoreVersion": "11",
+  "compatibleCoreVersion": "12",
   "authors": [
     {
       "name": "Elfrey",
