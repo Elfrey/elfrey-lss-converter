@@ -2,8 +2,6 @@
 import convertFoundryToLss from './module/convert';
 import saveJsonFile from './module/saveToFile';
 
-import uidFromString from './module/uidFromString';
-import generateUniqueIds from './module/generateUniqueIds';
 import { moduleName } from './_module';
 
 
@@ -69,43 +67,11 @@ if (process.env.NODE_ENV === 'development') {
   Hooks.on('ready', () => {
     Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
   })
+}
+
+// eslint-disable-next-line no-constant-condition
+if (process.env.NODE_ENV === 'development' && 0) {
   // @ts-ignore
-  window.runTmpTest = (runs = 10) => {
-    // Example usage and performance measurement using Performance API
-    const inputString = 'exampleString';
-
-    performance.mark('startU');
-    const uniqueIds: string[] = [];
-    for (let i = 0; i < runs; i++) {
-      uniqueIds.push(uidFromString(`${inputString}-${i}`));
-    }
-    // const uniqueId = uidFromString(inputString);
-    performance.mark('endU');
-    performance.measure('uidFromString', 'startU', 'endU');
-
-
-    performance.mark('startR');
-    const randomIds: string[] = [];
-    for (let i = 0; i < runs; i++) {
-      randomIds.push(generateUniqueIds()[0]);
-    }
-    // const randomId = generateUniqueIds();
-    performance.mark('endR');
-    performance.measure('generateUniqueIds', 'startR', 'endR');
-
-    const measure = performance.getEntriesByName('uidFromString')[0];
-    console.debug(`Unique ID`, uniqueIds); // Outputs a 12-digit unique ID
-    console.debug(`Time taken for Unique id: ${measure.duration} ms`); // Outputs the time taken in milliseconds
-
-    const measureR = performance.getEntriesByName('generateUniqueIds')[0];
-    console.debug('Random ID', randomIds);
-    console.debug(`Time taken for random id: ${measureR.duration} ms`); // Outputs the time taken in milliseconds
-
-
-// Clear the marks and measures to avoid memory leaks
-    performance.clearMarks();
-    performance.clearMeasures();
-  };
   if (module.hot) {
     module.hot.accept();
     if (module.hot.status() === 'apply') {
