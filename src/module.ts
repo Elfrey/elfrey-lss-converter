@@ -25,6 +25,7 @@ Hooks.on('getActorDirectoryEntryContext', (_, options) => {
       const actorId = entry.dataset.documentId;
       const actor = game.actors?.get(actorId);
 
+      console.debug('actor', actor);
       if (actor) {
         if (ui.notifications) {
           ui.notifications.info(game.i18n.localize('ELSS.CONVERT_START'));

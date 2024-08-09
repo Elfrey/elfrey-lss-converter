@@ -44,8 +44,12 @@ const calculateBonus = (data) => {
 }
 
 export default (weapon) => {
-  const bonus = calculateBonus(weapon.getAttackToHit());
-  // const damage = weapon.getDerivedDamageLabel().map(({label}) => label).join(', ');
+  console.debug('weapon', weapon);
+  let bonus = 0;
+  const attackToHit = weapon.getAttackToHit();
+  if (attackToHit) {
+    bonus = calculateBonus(attackToHit);
+  }
   const damage = transformDamageArray(weapon.getDerivedDamageLabel());
   return {
     bonus,
