@@ -27,15 +27,13 @@ const calculateBonus = (data) => {
   let sum = 0;
 
   parts.forEach(part => {
-    if (part.startsWith('@')) {
-      // Remove '@' and get the corresponding value from rollData
+    if (typeof part === 'string' && part.startsWith('@')) {
       const key = part.slice(1);
       const value = rollData[key];
       if (value !== undefined) {
         sum += parseInt(value, 10);
       }
     } else {
-      // If it's not a reference, parse it directly as an integer
       sum += parseInt(part, 10);
     }
   });
