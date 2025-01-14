@@ -421,6 +421,9 @@ const convertFoundryToLss = async (actorData) => {
       }
       case 'weapon': {
         const weaponStats = getWeaponStats(item);
+
+        if (weaponStats == null) break;
+
         if (useInteractiveBlocks) {
           lssWeapons.push(getWeaponObject({
             ...item,
