@@ -1,22 +1,28 @@
 /* global CONFIG, game */
 
+export default async ({ pack, itemIds, armorProfs }) => {
+  const result = {};
 
+  const ids = (itemIds && typeof itemIds === 'object') ? itemIds : {};
+  const hasPack = !!(pack && typeof pack.getDocument === 'function');
 
-export default async ({pack, itemIds, armorProfs}) => {
-  let itemsObject = {};
-
-  for (let itemName in itemIds) {
-    let itemId = itemIds[itemName];
-    let item = await pack.getDocument(itemId);
-    if (item) {
-      itemsObject[itemName] = item.name;
+  if (hasPack) {
+    for (const itemName in ids) {
+      try {
+        const itemId = ids[itemName];
+        const item = await pack.getDocument(itemId);
+        if (item) {
+          result[itemName] = item.name;
+        }
+      } catch (e) {
+        // ignore missing entries
+      }
     }
   }
 
-
   return {
-    ...itemsObject,
-    ...armorProfs,
+    ...result,
+    ...(armorProfs || {}),
   };
-}
+};
 

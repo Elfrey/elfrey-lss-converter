@@ -141,7 +141,7 @@ const fttSkillsKeys = {
 const convertFoundryToLss = async (actorData) => {
   const useInteractiveBlocks = game.settings.get(moduleName, 'interactive-blocks');
   const randomId = generateUniqueIds(20);
-  const itemsPack = game.packs.get('dnd5e.items');
+  const itemsPack = game.packs?.get?.('dnd5e.items');
   const {
     abilities,
     attributes,
@@ -273,7 +273,7 @@ const convertFoundryToLss = async (actorData) => {
         'data': {
           'type': 'doc',
           'content':
-            htmlToLssJson(details.biography.value),
+            htmlToLssJson((details?.biography?.value) || ''),
         },
       },
     },
@@ -283,7 +283,7 @@ const convertFoundryToLss = async (actorData) => {
         'data': {
           'type': 'doc',
           'content':
-            htmlToLssJson(details.trait),
+            htmlToLssJson(details?.trait || ''),
         },
       },
     },
@@ -293,7 +293,7 @@ const convertFoundryToLss = async (actorData) => {
         'data': {
           'type': 'doc',
           'content':
-            htmlToLssJson(details.ideal),
+            htmlToLssJson(details?.ideal || ''),
         },
       },
     },
@@ -303,7 +303,7 @@ const convertFoundryToLss = async (actorData) => {
         'data': {
           'type': 'doc',
           'content':
-            htmlToLssJson(details.bond),
+            htmlToLssJson(details?.bond || ''),
         },
       },
     },
@@ -313,39 +313,42 @@ const convertFoundryToLss = async (actorData) => {
         'data': {
           'type': 'doc',
           'content':
-            htmlToLssJson(details.flaw),
+            htmlToLssJson(details?.flaw || ''),
         },
       },
     },
   };
 
 
-  // Get class and spellcasting information
-  Object.keys(actorData._classes).forEach((classKey) => {
-    const curClass = actorData._classes[classKey];
-    const spellClass = curClass.spellcasting.progression;
+  // Get class and spellcasting information (support dnd5e 5.x where classes getter exists)
+  const classMap = (actorData.classes ?? actorData._classes) || {};
+  let totalLevels = 0;
+  Object.keys(classMap).forEach((classKey) => {
+    const curClass = classMap[classKey];
+    const spellClass = curClass?.spellcasting?.progression ?? 'none';
     if (spellClass !== 'none') {
       spellCasting.push(classKey);
-      spellCastingString.push(curClass.name);
+      if (curClass?.name) spellCastingString.push(curClass.name);
     }
-    if (hitDieMultiple[curClass.system.hitDice]) {
-      hitDieMultiple[curClass.system.hitDice] = {
-        current: hitDieMultiple[curClass.system.hitDice].current + curClass.system.levels,
-        max: hitDieMultiple[curClass.system.hitDice].max + curClass.system.levels,
-      };
-    } else {
-      hitDieMultiple[curClass.system.hitDice] = {
-        current: curClass.system.levels,
-        max: curClass.system.levels,
-      };
+    const hitDice = curClass?.system?.hitDice;
+    const levels = Number(curClass?.system?.levels || 0);
+    totalLevels += levels;
+    if (hitDice) {
+      if (hitDieMultiple[hitDice]) {
+        hitDieMultiple[hitDice] = {
+          current: (hitDieMultiple[hitDice].current || 0) + levels,
+          max: (hitDieMultiple[hitDice].max || 0) + levels,
+        };
+      } else {
+        hitDieMultiple[hitDice] = { current: levels, max: levels };
+      }
+      if (hitDie.value === '') {
+        hitDie.value = hitDice;
+      } else {
+        hitDie.value = 'multiclass';
+      }
     }
-    if (hitDie.value === '') {
-      hitDie.value = curClass.system.hitDice;
-    } else {
-      hitDie.value = 'multiclass';
-    }
-    // charClass.push(`${curClass.name} (${curClass.system.levels}) ${curClass._classLink.name}`);
-    charClass.push(`${curClass.name} (${curClass.system.levels})`);
+    if (curClass?.name) charClass.push(`${curClass.name} (${levels})`);
   });
 
   // Get spell slots and pact magic
@@ -392,11 +395,14 @@ const convertFoundryToLss = async (actorData) => {
 
   // Get skills
   for (let skill in skills) {
-    lssSkills[fttSkillsKeys[skill].lssSkill] = {
-      baseStat: skills[skill].ability,
-      name: fttSkillsKeys[skill].lssSkill,
-      label: CONFIG.DND5E.skills[skill].label,
-      isProf: skills[skill].proficient,
+    const sysSkill = skills[skill];
+    const map = fttSkillsKeys[skill];
+    if (!map) continue;
+    lssSkills[map.lssSkill] = {
+      baseStat: sysSkill?.ability,
+      name: map.lssSkill,
+      label: CONFIG.DND5E.skills[skill]?.label,
+      isProf: !!(sysSkill?.proficient || sysSkill?.value),
     };
   }
 
@@ -435,7 +441,7 @@ const convertFoundryToLss = async (actorData) => {
         break;
       }
       case 'feat': {
-        if (item.system.activation?.type !== null && item.system.uses.max > 0) {
+        if (item.system.activation?.type != null && Number(item.system.uses?.max || 0) > 0) {
           if (useInteractiveBlocks) {
             const { id, item: resourceItem } = getResource(item);
             lssResource[id] = resourceItem;
@@ -471,18 +477,18 @@ const convertFoundryToLss = async (actorData) => {
   // Get traits
   const weapons = await getWeapons({
     pack: itemsPack,
-    itemIds: CONFIG.DND5E.weaponIds,
-    weaponProfs: CONFIG.DND5E.weaponProficiencies,
+    itemIds: (CONFIG.DND5E?.weaponIds) || {},
+    weaponProfs: (CONFIG.DND5E?.weaponProficiencies) || {},
   });
   const armors = await getArmor({
     pack: itemsPack,
-    itemIds: CONFIG.DND5E.armorIds,
-    armorProfs: CONFIG.DND5E.armorProficiencies,
+    itemIds: (CONFIG.DND5E?.armorIds) || {},
+    armorProfs: (CONFIG.DND5E?.armorProficiencies) || {},
   });
   const tools = await getTools({
     pack: itemsPack,
-    itemIds: CONFIG.DND5E.toolIds,
-    toolsProfs: CONFIG.DND5E.vehicleTypes,
+    itemIds: (CONFIG.DND5E?.toolIds) || {},
+    toolsProfs: (CONFIG.DND5E?.vehicleTypes) || {},
   });
 
   traitStrings = getTraits({
@@ -509,7 +515,7 @@ const convertFoundryToLss = async (actorData) => {
           ? charClass.map(cls => `${cls.split(' ')[0].slice(0, 4)} (${cls.split(' (')[1]}`).join(' / ')
           : charClass[0],
       },
-      level: { name: 'level', label: 'уровень', value: details.level },
+      level: { name: 'level', label: 'уровень', value: (details?.level ?? totalLevels) },
       background: {
         name: 'background',
         label: 'предыстория',

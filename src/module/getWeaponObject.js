@@ -23,7 +23,7 @@ export default (item) => {
       'value': item.name,
     },
     'mod': {
-      'value': `+${parseInt(item.system.attack.bonus, 10)}`,
+      'value': `+${parseInt(item.bonus, 10)}`,
     },
     'dmg': {
       'value': item.damage,

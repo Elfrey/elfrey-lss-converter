@@ -65,7 +65,6 @@ module.exports = (env) => {
                     use: [
                         "ts-loader",
                         "webpack-import-glob-loader",
-                        "source-map-loader",
                         {
                             loader: "string-replace-loader",
                             options: {
@@ -97,6 +96,13 @@ module.exports = (env) => {
                         },
                     ],
                 },
+                // If you ever need it, you can add source-map-loader like this, excluding node_modules:
+                // {
+                //     enforce: "pre",
+                //     test: /\.js$/,
+                //     loader: "source-map-loader",
+                //     exclude: /node_modules/,
+                // },
             ],
         },
         plugins: [

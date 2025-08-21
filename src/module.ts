@@ -4,7 +4,6 @@ import saveJsonFile from './module/saveToFile';
 
 import { moduleName } from './_module';
 
-
 Hooks.once('ready', async function() {
   game.settings.register(moduleName, 'interactive-blocks', {
     'name': 'Использовать интерактивные блоки',
@@ -14,38 +13,34 @@ Hooks.once('ready', async function() {
     'type': Boolean,
     'default': true,
   });
-
 });
 
-Hooks.on('getActorDirectoryEntryContext', (_, options) => {
+
+Hooks.on('getActorContextOptions', (_html, options) => {
   options.push({
     name: 'ELSS.CONVERT',
-    icon: '<i class="fas fa-print"></i>',
-    callback: async ([entry]) => {
-      const actorId = entry.dataset.documentId;
-      const actor = game.actors?.get(actorId);
+    icon: '<i class="fa-solid fa-print"></i>',
+    callback: async (el) => {
+      const actorId = el?.dataset?.documentId || el?.dataset?.entryId;
+      const actor = game.actors?.get(actorId ?? '');
 
       if (actor) {
-        if (ui.notifications) {
-          ui.notifications.info(game.i18n.localize('ELSS.CONVERT_START'));
-        }
+        ui.notifications?.info(game.i18n.localize('ELSS.CONVERT_START'));
         const jsonString = await convertFoundryToLss(actor);
         saveJsonFile(jsonString, actor?.name);
-        if (ui.notifications) {
-          ui.notifications.info(game.i18n.localize('ELSS.CONVERT_END'));
-        }
+        ui.notifications?.info(game.i18n.localize('ELSS.CONVERT_END'));
       }
     },
     condition: (li) => {
-      const actorId = li.data('documentId');
-      const actor = game.actors?.get(actorId);
-      // Show the option only if the actor is a player character (PC)
+      const el = (li instanceof HTMLElement) ? li : (li && li[0]);
+      const actorId = el?.dataset?.documentId || el?.dataset?.entryId;
+      const actor = game.actors?.get(actorId ?? '');
+      // Show only for PCs
       // @ts-ignore
-      return actor && actor.type === 'character';
+      return !!actor && actor.type === 'character';
     },
   });
 });
-
 
 // --------------------------------
 if (process.env.NODE_ENV === 'development') {
@@ -63,10 +58,15 @@ if (process.env.NODE_ENV === 'development') {
         },
       });
     }
-  }
+  };
+
   Hooks.on('ready', () => {
-    Hooks.on('getActorSheet5eHeaderButtons', createActorHeaderButton);
-  })
+    // Core-agnostic header buttons hook (preferred in v10+)
+    Hooks.on('getActorSheetHeaderButtons', createActorHeaderButton);
+
+    // Keep system-specific hook for broader compatibility if present
+    Hooks.on?.('getActorSheet5eHeaderButtons', createActorHeaderButton);
+  });
 }
 
 // eslint-disable-next-line no-constant-condition
