@@ -35,7 +35,7 @@ export default ({traits, languages, weapons, armors, tools, actorTools}) => {
         case 'dm':
         case 'ci': {
           traitString += Array.from(traitValue.value).map((damageType) => {
-              return CONFIG.DND5E[traitsConfig[traitKey].configKey][damageType].label
+              return CONFIG.DND5E[traitsConfig[traitKey].configKey][damageType]?.label || damageType
             }
           ).join(', ') + `${traitValue.custom !== '' ? `, ${traitValue.custom}` : ''}`;
           break;
